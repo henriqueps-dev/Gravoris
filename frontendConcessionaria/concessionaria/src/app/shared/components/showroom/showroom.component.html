@@ -1,0 +1,33 @@
+<section class="showroom" id="vitrine">
+  <div class="showroom-header">
+    <span class="eyebrow">Coleção Exclusiva</span>
+    <h2>Superesportivos de Elite</h2>
+    <p>Selecione uma marca ou refine sua busca para descobrir o veículo perfeito.</p>
+  </div>
+
+  <app-brand-bar (brandSelected)="refresh()" />
+
+  <div class="showroom-content">
+    <app-vehicle-filters (filtersChanged)="refresh()" />
+
+    @if (catalog.filters().brand) {
+      <p class="active-filter">
+        Exibindo veículos <strong>{{ catalog.filters().brand }}</strong>
+        <button type="button" (click)="catalog.setBrand(null); refresh()">Limpar</button>
+      </p>
+    }
+
+    @if (vehicles().length > 0) {
+      <div class="vehicle-grid">
+        @for (vehicle of vehicles(); track vehicle.id) {
+          <app-vehicle-card [vehicle]="vehicle" />
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <p>Nenhum veículo encontrado com os filtros selecionados.</p>
+        <button type="button" (click)="catalog.resetFilters(); refresh()">Limpar filtros</button>
+      </div>
+    }
+  </div>
+</section>
