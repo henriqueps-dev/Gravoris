@@ -1,0 +1,155 @@
+.account-page {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 80px);
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2rem;
+  gap: 2.5rem;
+  background: #050505;
+}
+
+.account-sidebar {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(74, 111, 165, 0.5), rgba(107, 140, 206, 0.3));
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.sidebar-profile strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.sidebar-profile small {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.account-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.account-sidebar nav button {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.3s, color 0.3s;
+}
+
+.account-sidebar nav button:hover,
+.account-sidebar nav button.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.account-sidebar nav .logout {
+  margin-top: 1rem;
+  color: rgba(220, 120, 120, 0.85);
+}
+
+.account-content h1 {
+  font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+
+.profile-card {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.profile-card p {
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.04em;
+}
+
+.profile-card p span {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 0.25rem;
+}
+
+.empty-msg {
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+}
+
+.link-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  transition: background 0.3s;
+}
+
+.link-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .account-page {
+    grid-template-columns: 1fr;
+  }
+
+  .account-sidebar {
+    position: static;
+  }
+
+  .favorites-grid {
+    grid-template-columns: 1fr;
+  }
+}

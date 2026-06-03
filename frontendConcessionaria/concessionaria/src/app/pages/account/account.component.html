@@ -1,0 +1,56 @@
+<app-site-header />
+
+<main class="account-page">
+  <aside class="account-sidebar">
+    <div class="sidebar-profile">
+      <span class="profile-avatar">{{ auth.userInitial() }}</span>
+      <div>
+        <strong>{{ auth.currentUser()?.fullName }}</strong>
+        <small>{{ auth.currentUser()?.email }}</small>
+      </div>
+    </div>
+    <nav>
+      <button type="button" [class.active]="activeSection === 'perfil'" (click)="setSection('perfil')">Meu Perfil</button>
+      <button type="button" [class.active]="activeSection === 'pedidos'" (click)="setSection('pedidos')">Meus Pedidos</button>
+      <button type="button" [class.active]="activeSection === 'favoritos'" (click)="setSection('favoritos')">Favoritos</button>
+      <button type="button" [class.active]="activeSection === 'configuracoes'" (click)="setSection('configuracoes')">Configurações</button>
+      <button type="button" class="logout" (click)="auth.logout()">Sair</button>
+    </nav>
+  </aside>
+
+  <section class="account-content">
+    @switch (activeSection) {
+      @case ('perfil') {
+        <h1>Meu Perfil</h1>
+        <div class="profile-card">
+          <p><span>Nome</span>{{ auth.currentUser()?.fullName }}</p>
+          <p><span>E-mail</span>{{ auth.currentUser()?.email }}</p>
+        </div>
+      }
+      @case ('pedidos') {
+        <h1>Meus Pedidos</h1>
+        <p class="empty-msg">Nenhum pedido realizado ainda. Explore nossa coleção exclusiva.</p>
+        <a routerLink="/" class="link-btn">Ver catálogo</a>
+      }
+      @case ('favoritos') {
+        <h1>Favoritos</h1>
+        @if (favoriteVehicles().length > 0) {
+          <div class="favorites-grid">
+            @for (vehicle of favoriteVehicles(); track vehicle.id) {
+              <app-vehicle-card [vehicle]="vehicle" />
+            }
+          </div>
+        } @else {
+          <p class="empty-msg">Você ainda não favoritou nenhum veículo.</p>
+          <a routerLink="/" class="link-btn">Explorar veículos</a>
+        }
+      }
+      @case ('configuracoes') {
+        <h1>Configurações</h1>
+        <div class="profile-card">
+          <p class="empty-msg">Preferências de notificação e privacidade em breve.</p>
+        </div>
+      }
+    }
+  </section>
+</main>

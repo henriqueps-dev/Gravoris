@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, output, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-landing-page',
@@ -8,6 +8,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
   styleUrl: './landing-page.css'
 })
 export class LandingPage implements OnInit, OnDestroy {
+  readonly navigateToStore = output<void>();
   @ViewChild('bgVideo') bgVideo?: ElementRef<HTMLVideoElement>;
 
   videos: string[] = [
