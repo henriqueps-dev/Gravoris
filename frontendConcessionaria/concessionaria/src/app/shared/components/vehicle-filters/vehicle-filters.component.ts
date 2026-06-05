@@ -1,6 +1,6 @@
 import { Component, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BRANDS, SortOption } from '../../../core/models/vehicle';
+import { SortOption } from '../../../core/models/vehicle';
 import { VehicleCatalogService } from '../../../core/services/vehicle-catalog.service';
 import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive';
 
@@ -14,7 +14,6 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
 export class VehicleFiltersComponent {
   readonly filtersChanged = output<void>();
   protected readonly catalog = inject(VehicleCatalogService);
-  protected readonly brands = BRANDS;
   protected readonly sortOptions: { value: SortOption; label: string }[] = [
     { value: 'price-desc', label: 'Preço: maior → menor' },
     { value: 'price-asc', label: 'Preço: menor → maior' },
@@ -48,7 +47,7 @@ export class VehicleFiltersComponent {
   }
 
   onBrandFilterChange(value: string): void {
-    const brand = value ? (value as (typeof BRANDS)[number]) : null;
+    const brand = value || null;
     this.catalog.setBrand(brand);
     this.filtersChanged.emit();
   }

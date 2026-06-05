@@ -26,6 +26,12 @@
       </label>
 
       <label>
+        <span>CPF</span>
+        <input type="text" name="cpf" [(ngModel)]="cpf" required autocomplete="off" placeholder="00000000000" maxlength="14" />
+        <small class="field-hint">Apenas números, 11 dígitos</small>
+      </label>
+
+      <label>
         <span>Senha</span>
         <input type="password" name="password" [(ngModel)]="password" required autocomplete="new-password" placeholder="Mínimo 6 caracteres" />
       </label>

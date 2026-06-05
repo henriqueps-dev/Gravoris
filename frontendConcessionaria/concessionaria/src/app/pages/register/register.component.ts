@@ -17,29 +17,29 @@ export class RegisterComponent {
   fullName = '';
   email = '';
   phone = '';
+  cpf = '';
   password = '';
   confirmPassword = '';
   loading = signal(false);
 
   readonly backgroundVideo = 'assets/videos/mclaren.mp4';
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (this.loading()) return;
     this.loading.set(true);
 
-    setTimeout(() => {
-      const ok = this.auth.register({
-        fullName: this.fullName,
-        email: this.email,
-        phone: this.phone,
-        password: this.password,
-        confirmPassword: this.confirmPassword
-      });
-      this.loading.set(false);
+    const ok = await this.auth.register({
+      fullName: this.fullName,
+      email: this.email,
+      phone: this.phone,
+      cpf: this.cpf,
+      password: this.password,
+      confirmPassword: this.confirmPassword
+    });
+    this.loading.set(false);
 
-      if (ok) {
-        void this.router.navigate(['/conta']);
-      }
-    }, 700);
+    if (ok) {
+      void this.router.navigate(['/conta']);
+    }
   }
 }

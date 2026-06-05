@@ -24,19 +24,17 @@ export class LoginComponent {
 
   readonly backgroundVideo = 'assets/videos/bugatti.mp4';
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (this.loading()) return;
     this.loading.set(true);
 
-    setTimeout(() => {
-      const ok = this.auth.login(this.email, this.password, this.remember);
-      this.loading.set(false);
+    const ok = await this.auth.login(this.email, this.password, this.remember);
+    this.loading.set(false);
 
-      if (ok) {
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] as string;
-        void this.router.navigateByUrl(returnUrl || '/');
-      }
-    }, 600);
+    if (ok) {
+      const returnUrl = this.route.snapshot.queryParams['returnUrl'] as string;
+      void this.router.navigateByUrl(returnUrl || '/');
+    }
   }
 
   forgotPassword(): void {

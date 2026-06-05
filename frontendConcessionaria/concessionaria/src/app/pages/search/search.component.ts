@@ -35,7 +35,7 @@ export class SearchComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       const q = (params['q'] as string) ?? '';
-      this.catalog.search(q);
+      void this.catalog.searchFromApi(q);
     });
   }
 

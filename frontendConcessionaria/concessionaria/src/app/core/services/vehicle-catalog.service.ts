@@ -1,6 +1,10 @@
-import { Injectable, signal } from '@angular/core';
-import { VEHICLES } from '../data/vehicles';
+import { HttpClient } from '@angular/common/http';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { API_BASE_URL } from '../config/api.config';
+import { ProdutoResponse } from '../models/api';
 import { Brand, SortOption, Vehicle, VehicleFilters } from '../models/vehicle';
+import { mapProdutoToVehicle } from '../utils/product-mapper';
 
 const DEFAULT_FILTERS: VehicleFilters = {
   brand: null,
@@ -12,12 +16,80 @@ const DEFAULT_FILTERS: VehicleFilters = {
 
 @Injectable({ providedIn: 'root' })
 export class VehicleCatalogService {
-  private readonly allVehicles = VEHICLES;
+  private readonly http = inject(HttpClient);
+  private readonly vehicles = signal<Vehicle[]>([]);
+
   readonly filters = signal<VehicleFilters>({ ...DEFAULT_FILTERS });
   readonly searchQuery = signal('');
+  readonly loading = signal(false);
+  readonly loaded = signal(false);
+  readonly error = signal<string | null>(null);
+
+  readonly availableBrands = computed(() =>
+    [...new Set(this.vehicles().map((v) => v.brand))].sort()
+  );
+
+  constructor() {
+    void this.loadVitrine();
+  }
+
+  async loadVitrine(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      const products = await firstValueFrom(
+        this.http.get<ProdutoResponse[]>(`${API_BASE_URL}/produtos/vitrine`)
+      );
+      this.vehicles.set(products.map(mapProdutoToVehicle));
+      this.loaded.set(true);
+    } catch {
+      this.error.set('Não foi possível carregar o catálogo');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async searchFromApi(term: string): Promise<void> {
+    this.searchQuery.set(term);
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      const products = await firstValueFrom(
+        this.http.get<ProdutoResponse[]>(`${API_BASE_URL}/produtos/busca`, {
+          params: term ? { q: term } : {}
+        })
+      );
+      this.vehicles.set(products.map(mapProdutoToVehicle));
+    } catch {
+      this.error.set('Não foi possível buscar veículos');
+    } finally {
+      this.loading.set(false);
+    }
+  }
 
   getById(id: string): Vehicle | undefined {
-    return this.allVehicles.find((v) => v.id === id);
+    return this.vehicles().find((v) => v.id === id);
+  }
+
+  async fetchById(id: string): Promise<Vehicle | undefined> {
+    const cached = this.getById(id);
+    if (cached) return cached;
+
+    try {
+      const product = await firstValueFrom(
+        this.http.get<ProdutoResponse>(`${API_BASE_URL}/produtos/${id}`)
+      );
+      const vehicle = mapProdutoToVehicle(product);
+      this.vehicles.update((list) => {
+        if (list.some((v) => v.id === vehicle.id)) return list;
+        return [...list, vehicle];
+      });
+      return vehicle;
+    } catch {
+      return undefined;
+    }
   }
 
   setBrand(brand: Brand | null): void {
@@ -37,7 +109,7 @@ export class VehicleCatalogService {
     const { brand, minSpeed, minPrice, maxPrice, sort } = this.filters();
     const query = this.searchQuery().trim().toLowerCase();
 
-    let result = [...this.allVehicles];
+    let result = [...this.vehicles()];
 
     if (query) {
       result = result.filter(

@@ -1,5 +1,4 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
-import { VEHICLES } from './core/data/vehicles';
 
 export const serverRoutes: ServerRoute[] = [
   { path: '', renderMode: RenderMode.Prerender },
@@ -8,10 +7,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'cadastro', renderMode: RenderMode.Prerender },
   { path: 'carrinho', renderMode: RenderMode.Prerender },
   { path: 'conta', renderMode: RenderMode.Prerender },
-  {
-    path: 'veiculo/:id',
-    renderMode: RenderMode.Prerender,
-    getPrerenderParams: async () => VEHICLES.map((vehicle) => ({ id: vehicle.id }))
-  },
+  { path: 'veiculo/:id', renderMode: RenderMode.Server },
   { path: '**', renderMode: RenderMode.Prerender }
 ];

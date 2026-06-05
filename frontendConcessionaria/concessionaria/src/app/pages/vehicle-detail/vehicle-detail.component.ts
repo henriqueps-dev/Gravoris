@@ -1,5 +1,6 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Vehicle } from '../../core/models/vehicle';
 import { VehicleCatalogService } from '../../core/services/vehicle-catalog.service';
 import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,7 +17,7 @@ import { ScrollRevealDirective } from '../../shared/directives/scroll-reveal.dir
   templateUrl: './vehicle-detail.component.html',
   styleUrl: './vehicle-detail.component.css'
 })
-export class VehicleDetailComponent {
+export class VehicleDetailComponent implements OnInit {
   readonly id = input.required<string>();
   private readonly catalog = inject(VehicleCatalogService);
   protected readonly cart = inject(CartService);
@@ -25,9 +26,22 @@ export class VehicleDetailComponent {
   private readonly authModal = inject(AuthModalService);
   protected readonly formatPrice = formatPrice;
 
-  protected readonly vehicle = computed(() => this.catalog.getById(this.id()));
+  private readonly loadedVehicle = signal<Vehicle | undefined>(undefined);
+
+  protected readonly vehicle = computed(
+    () => this.loadedVehicle() ?? this.catalog.getById(this.id())
+  );
 
   selectedImageIndex = 0;
+
+  ngOnInit(): void {
+    void this.loadVehicle();
+  }
+
+  private async loadVehicle(): Promise<void> {
+    const vehicle = await this.catalog.fetchById(this.id());
+    this.loadedVehicle.set(vehicle);
+  }
 
   addToCart(): void {
     if (!this.auth.isLoggedIn()) {
