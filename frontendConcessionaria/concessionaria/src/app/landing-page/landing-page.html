@@ -9,37 +9,13 @@
 
   <header class="header">
 
-    <div class="menu-area">
-      <div class="menu-icon">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
 
-      <p>MENU</p>
-    </div>
 
     <div class="logo">
-      BLACKLINE
+      GRAVORIS
     </div>
 
-    <div class="store-area">
-      <p>Loja</p>
 
-      <svg xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="18"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor">
-
-        <path stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.5"
-          d="M3 3h18l-1 18H4L3 3zm5 0V1h8v2" />
-
-      </svg>
-    </div>
 
   </header>
 
@@ -53,7 +29,7 @@
       Descubra uma seleção exclusiva de superesportivos <br> e veículos premium criados para quem exige potência,<br> elegância e sofisticação em cada detalhe.
     </p>
 
-    <button>
+    <button type="button" (click)="navigateToStore.emit()" >
       EXPLORAR VEÍCULOS
     </button>
 

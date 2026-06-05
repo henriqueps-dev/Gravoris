@@ -1,0 +1,46 @@
+<div class="auth-page">
+  <video autoplay muted loop playsinline class="auth-video">
+    <source [src]="backgroundVideo" type="video/mp4" />
+  </video>
+  <div class="auth-overlay"></div>
+
+  <div class="auth-card">
+    <a routerLink="/" class="auth-logo">GRAVORIS</a>
+    <h1>Entrar</h1>
+    <p class="auth-subtitle">Acesse sua conta exclusiva</p>
+    <form (ngSubmit)="submit()">
+      <label>
+        <span>E-mail</span>
+        <input type="email" name="email" [(ngModel)]="email" required autocomplete="email" placeholder="seu@email.com" />
+      </label>
+
+      <label>
+        <span>Senha</span>
+        <input type="password" name="password" [(ngModel)]="password" required autocomplete="current-password" placeholder="••••••••" />
+      </label>
+
+      <div class="auth-options">
+        <label class="checkbox">
+          <input type="checkbox" [(ngModel)]="remember" name="remember" />
+          <span>Lembrar-me</span>
+        </label>
+        <button type="button" class="link-btn" (click)="forgotPassword()">Esqueci minha senha</button>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="loading()">
+        @if (loading()) {
+          <span class="loader"></span>
+          Entrando...
+        } @else {
+          Entrar
+        }
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Não tem conta?
+      <a routerLink="/cadastro">Criar conta</a>
+    </p>
+    <a routerLink="/" class="back-catalog">← Voltar para o catálogo</a>
+  </div>
+</div>
