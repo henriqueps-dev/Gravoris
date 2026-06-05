@@ -45,6 +45,16 @@ public class Produto {
 
     private int estoque;
 
+    private String motor;
+
+    private int potencia;
+
+    private String torque;
+
+    private int velocidadeMax;
+
+    private String aceleracao;
+
     @Column(nullable = false)
     private boolean ativo = true;
 }

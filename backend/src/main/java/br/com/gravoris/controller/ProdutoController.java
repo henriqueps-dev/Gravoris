@@ -55,7 +55,12 @@ public class ProdutoController {
                 produto.getAno(),
                 produto.getQuilometragem(),
                 produto.getCategoria() != null ? produto.getCategoria().name() : null,
-                produto.getEstoque()
+                produto.getEstoque(),
+                produto.getMotor(),
+                produto.getPotencia(),
+                produto.getTorque(),
+                produto.getVelocidadeMax(),
+                produto.getAceleracao()
         );
     }
 }

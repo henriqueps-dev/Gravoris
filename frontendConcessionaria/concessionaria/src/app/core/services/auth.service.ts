@@ -1,18 +1,20 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
-import { API_BASE_URL } from '../config/api.config';
-import { ApiErrorResponse, ClienteResponse, LoginResponse } from '../models/api';
+import { ClienteRequest, LoginRequest, LoginResponse } from '../models/api';
 import { AuthSession } from '../models/user';
+import { mapApiError } from '../utils/api-error.util';
+import { ClienteService } from './cliente.service';
 import { ToastService } from './toast.service';
 
 const SESSION_KEY = 'gravoris-session';
 const REMEMBER_KEY = 'gravoris-remember';
 
+/**
+ * Equivalente Angular ao authService.js — orquestra login, cadastro e sessão.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http = inject(HttpClient);
+  private readonly clienteService = inject(ClienteService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly session = signal<AuthSession | null>(this.loadSession());
@@ -26,18 +28,18 @@ export class AuthService {
   });
 
   async login(email: string, password: string, remember = false): Promise<boolean> {
+    const payload: LoginRequest = {
+      email: email.trim().toLowerCase(),
+      password
+    };
+
     try {
-      const response = await firstValueFrom(
-        this.http.post<LoginResponse>(`${API_BASE_URL}/clientes/login`, {
-          email: email.trim(),
-          password
-        })
-      );
+      const response = await this.clienteService.login(payload);
       this.setSession(response, remember);
       this.toast.success('Login realizado com sucesso');
       return true;
     } catch (error) {
-      this.toast.error(this.extractError(error, 'E-mail ou senha incorretos'));
+      this.toast.error(mapApiError(error, 'login', 'E-mail ou senha incorretos'));
       return false;
     }
   }
@@ -58,7 +60,7 @@ export class AuthService {
       !data.password ||
       !data.confirmPassword
     ) {
-      this.toast.error('Verifique os dados informados');
+      this.toast.error('Campos inválidos. Verifique os dados informados');
       return false;
     }
 
@@ -72,16 +74,22 @@ export class AuthService {
       return false;
     }
 
+    const cpf = data.cpf.replace(/\D/g, '');
+    if (cpf.length !== 11) {
+      this.toast.error('CPF inválido');
+      return false;
+    }
+
+    const payload: ClienteRequest = {
+      name: data.fullName.trim(),
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
+      phone: data.phone.trim(),
+      cpf
+    };
+
     try {
-      const cliente = await firstValueFrom(
-        this.http.post<ClienteResponse>(`${API_BASE_URL}/clientes`, {
-          name: data.fullName.trim(),
-          email: data.email.trim().toLowerCase(),
-          phone: data.phone.trim(),
-          cpf: data.cpf.trim(),
-          password: data.password
-        })
-      );
+      const cliente = await this.clienteService.cadastrar(payload);
 
       this.setSession(
         {
@@ -95,7 +103,7 @@ export class AuthService {
       this.toast.success('Conta criada com sucesso');
       return true;
     } catch (error) {
-      this.toast.error(this.extractError(error, 'Não foi possível criar a conta'));
+      this.toast.error(mapApiError(error, 'register', 'Não foi possível criar a conta'));
       return false;
     }
   }
@@ -121,14 +129,6 @@ export class AuthService {
     };
     this.session.set(session);
     this.persistSession(session, remember);
-  }
-
-  private extractError(error: unknown, fallback: string): string {
-    if (error instanceof HttpErrorResponse) {
-      const body = error.error as ApiErrorResponse | undefined;
-      if (body?.error) return body.error;
-    }
-    return fallback;
   }
 
   private loadSession(): AuthSession | null {

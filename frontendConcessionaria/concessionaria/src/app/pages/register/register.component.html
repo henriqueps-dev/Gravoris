@@ -27,7 +27,8 @@
 
       <label>
         <span>CPF</span>
-        <input type="text" name="cpf" [(ngModel)]="cpf" required autocomplete="off" placeholder="000.000.000-00" />
+        <input type="text" name="cpf" [(ngModel)]="cpf" required autocomplete="off" placeholder="00000000000" maxlength="14" />
+        <small class="field-hint">Apenas números, 11 dígitos</small>
       </label>
 
       <label>

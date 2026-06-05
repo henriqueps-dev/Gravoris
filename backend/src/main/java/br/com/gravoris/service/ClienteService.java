@@ -5,7 +5,9 @@ import br.com.gravoris.dto.LoginRequest;
 import br.com.gravoris.dto.LoginResponse;
 import br.com.gravoris.dto.RedefinirSenhaRequest;
 import br.com.gravoris.exception.BadRequestException;
+import br.com.gravoris.exception.ConflictException;
 import br.com.gravoris.exception.ResourceNotFoundException;
+import br.com.gravoris.exception.UnauthorizedException;
 import br.com.gravoris.model.Cliente;
 import br.com.gravoris.repository.ClienteRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,12 +33,12 @@ public class ClienteService {
     public Cliente salvar(ClienteRequest request) {
         clienteRepository.findByEmail(request.email())
                 .ifPresent(cliente -> {
-                    throw new BadRequestException("Email já cadastrado");
+                    throw new ConflictException("Email já cadastrado");
                 });
 
         clienteRepository.findByCpf(request.cpf())
                 .ifPresent(cliente -> {
-                    throw new BadRequestException("CPF já cadastrado");
+                    throw new ConflictException("CPF já cadastrado");
                 });
 
         Cliente cliente = Cliente.builder()
@@ -60,7 +62,7 @@ public class ClienteService {
             clienteRepository.findByEmail(request.email())
                     .ifPresent(existing -> {
                         if (!existing.getId().equals(id)) {
-                            throw new BadRequestException("Email já cadastrado por outro cliente");
+                            throw new ConflictException("Email já cadastrado");
                         }
                     });
         }
@@ -69,7 +71,7 @@ public class ClienteService {
             clienteRepository.findByCpf(request.cpf())
                     .ifPresent(existing -> {
                         if (!existing.getId().equals(id)) {
-                            throw new BadRequestException("CPF já cadastrado por outro cliente");
+                            throw new ConflictException("CPF já cadastrado");
                         }
                     });
         }
@@ -88,10 +90,10 @@ public class ClienteService {
 
     public LoginResponse login(LoginRequest request) {
         Cliente cliente = clienteRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadRequestException("Credenciais inválidas"));
+                .orElseThrow(() -> new UnauthorizedException("Email ou senha incorretos"));
 
         if (!passwordEncoder.matches(request.password(), cliente.getSenha())) {
-            throw new BadRequestException("Credenciais inválidas");
+            throw new UnauthorizedException("Email ou senha incorretos");
         }
 
         String token = UUID.randomUUID().toString();

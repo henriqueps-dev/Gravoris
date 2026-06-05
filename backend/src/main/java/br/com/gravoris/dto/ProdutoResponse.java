@@ -16,6 +16,11 @@ public record ProdutoResponse(
         int year,
         int mileage,
         String category,
-        int stock
+        int stock,
+        String engine,
+        int power,
+        String torque,
+        int topSpeed,
+        String acceleration
 ) {
 }

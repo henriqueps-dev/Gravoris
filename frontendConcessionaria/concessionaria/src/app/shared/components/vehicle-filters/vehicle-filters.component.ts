@@ -23,17 +23,17 @@ export class VehicleFiltersComponent {
 
   speedOptions = [
     { value: null, label: 'Qualquer velocidade' },
-    { value: 150, label: '150+ km/h' },
-    { value: 180, label: '180+ km/h' },
-    { value: 200, label: '200+ km/h' }
+    { value: 250, label: '250+ km/h' },
+    { value: 300, label: '300+ km/h' },
+    { value: 350, label: '350+ km/h' }
   ];
 
   priceRanges = [
     { min: null, max: null, label: 'Qualquer preço' },
-    { min: null, max: 100000, label: 'Até R$ 100 mil' },
-    { min: 100000, max: 200000, label: 'R$ 100 mil – R$ 200 mil' },
-    { min: 200000, max: 300000, label: 'R$ 200 mil – R$ 300 mil' },
-    { min: 300000, max: null, label: 'Acima de R$ 300 mil' }
+    { min: null, max: 2000000, label: 'Até R$ 2M' },
+    { min: 2000000, max: 5000000, label: 'R$ 2M – R$ 5M' },
+    { min: 5000000, max: 10000000, label: 'R$ 5M – R$ 10M' },
+    { min: 10000000, max: null, label: 'Acima de R$ 10M' }
   ];
 
   onSortChange(value: SortOption): void {
