@@ -1,6 +1,6 @@
 <div class="brand-bar-wrapper">
   <div class="brand-bar">
-    @for (brand of brands; track brand) {
+    @for (brand of catalog.availableBrands(); track brand) {
       <button
         type="button"
         class="brand-item"

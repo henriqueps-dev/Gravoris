@@ -1,23 +1,20 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthSession, User } from '../models/user';
+import { firstValueFrom } from 'rxjs';
+import { API_BASE_URL } from '../config/api.config';
+import { ApiErrorResponse, ClienteResponse, LoginResponse } from '../models/api';
+import { AuthSession } from '../models/user';
 import { ToastService } from './toast.service';
 
-const USERS_KEY = 'gravoris-users';
 const SESSION_KEY = 'gravoris-session';
 const REMEMBER_KEY = 'gravoris-remember';
 
-const DEMO_USER: User = {
-  id: 'demo-1',
-  fullName: 'Cliente Gravoris',
-  email: 'demo@gravoris.com',
-  phone: '+55 11 99999-0000',
-  password: '123456',
-  createdAt: new Date().toISOString()
-};
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
   private readonly session = signal<AuthSession | null>(this.loadSession());
 
   readonly currentUser = computed(() => this.session());
@@ -28,40 +25,36 @@ export class AuthService {
     return name.trim().charAt(0).toUpperCase() || '?';
   });
 
-  constructor(
-    private readonly toast: ToastService,
-    private readonly router: Router
-  ) {
-    this.ensureDemoUser();
-  }
-
-  login(email: string, password: string, remember = false): boolean {
-    const normalized = email.trim().toLowerCase();
-    const user = this.getUsers().find(
-      (u) => u.email.toLowerCase() === normalized && u.password === password
-    );
-
-    if (!user) {
-      this.toast.error('E-mail ou senha incorretos');
+  async login(email: string, password: string, remember = false): Promise<boolean> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<LoginResponse>(`${API_BASE_URL}/clientes/login`, {
+          email: email.trim(),
+          password
+        })
+      );
+      this.setSession(response, remember);
+      this.toast.success('Login realizado com sucesso');
+      return true;
+    } catch (error) {
+      this.toast.error(this.extractError(error, 'E-mail ou senha incorretos'));
       return false;
     }
-
-    this.setSession(user, remember);
-    this.toast.success('Login realizado com sucesso');
-    return true;
   }
 
-  register(data: {
+  async register(data: {
     fullName: string;
     email: string;
     phone: string;
+    cpf: string;
     password: string;
     confirmPassword: string;
-  }): boolean {
+  }): Promise<boolean> {
     if (
       !data.fullName.trim() ||
       !data.email.trim() ||
       !data.phone.trim() ||
+      !data.cpf.trim() ||
       !data.password ||
       !data.confirmPassword
     ) {
@@ -70,36 +63,41 @@ export class AuthService {
     }
 
     if (data.password !== data.confirmPassword) {
-      this.toast.error('Verifique os dados informados');
+      this.toast.error('As senhas não coincidem');
       return false;
     }
 
     if (data.password.length < 6) {
-      this.toast.error('Verifique os dados informados');
+      this.toast.error('A senha deve ter pelo menos 6 caracteres');
       return false;
     }
 
-    const email = data.email.trim().toLowerCase();
-    const users = this.getUsers();
+    try {
+      const cliente = await firstValueFrom(
+        this.http.post<ClienteResponse>(`${API_BASE_URL}/clientes`, {
+          name: data.fullName.trim(),
+          email: data.email.trim().toLowerCase(),
+          phone: data.phone.trim(),
+          cpf: data.cpf.trim(),
+          password: data.password
+        })
+      );
 
-    if (users.some((u) => u.email.toLowerCase() === email)) {
-      this.toast.error('Verifique os dados informados');
+      this.setSession(
+        {
+          id: cliente.id,
+          name: cliente.name,
+          email: cliente.email,
+          token: ''
+        },
+        true
+      );
+      this.toast.success('Conta criada com sucesso');
+      return true;
+    } catch (error) {
+      this.toast.error(this.extractError(error, 'Não foi possível criar a conta'));
       return false;
     }
-
-    const user: User = {
-      id: crypto.randomUUID?.() ?? `user-${Date.now()}`,
-      fullName: data.fullName.trim(),
-      email,
-      phone: data.phone.trim(),
-      password: data.password,
-      createdAt: new Date().toISOString()
-    };
-
-    this.saveUsers([...users, user]);
-    this.setSession(user, true);
-    this.toast.success('Conta criada com sucesso');
-    return true;
   }
 
   logout(): void {
@@ -108,37 +106,29 @@ export class AuthService {
     void this.router.navigate(['/']);
   }
 
-  private setSession(user: User, remember: boolean): void {
+  getClienteId(): number | null {
+    const id = this.session()?.userId;
+    return id ? Number(id) : null;
+  }
+
+  private setSession(response: LoginResponse, remember: boolean): void {
     const session: AuthSession = {
-      userId: user.id,
-      email: user.email,
-      fullName: user.fullName,
+      userId: String(response.id),
+      email: response.email,
+      fullName: response.name,
+      token: response.token,
       remember
     };
     this.session.set(session);
     this.persistSession(session, remember);
   }
 
-  private ensureDemoUser(): void {
-    const users = this.getUsers();
-    if (!users.some((u) => u.email === DEMO_USER.email)) {
-      this.saveUsers([...users, DEMO_USER]);
+  private extractError(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      const body = error.error as ApiErrorResponse | undefined;
+      if (body?.error) return body.error;
     }
-  }
-
-  private getUsers(): User[] {
-    if (typeof localStorage === 'undefined') return [];
-    try {
-      const raw = localStorage.getItem(USERS_KEY);
-      return raw ? (JSON.parse(raw) as User[]) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private saveUsers(users: User[]): void {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    return fallback;
   }
 
   private loadSession(): AuthSession | null {
@@ -172,9 +162,4 @@ export class AuthService {
     localStorage.removeItem(REMEMBER_KEY);
     sessionStorage.removeItem(SESSION_KEY);
   }
-}
-
-function injectAuthModal(): import('./auth-modal.service').AuthModalService {
-  // Lazy import pattern avoided — AuthService callers use AuthModalService directly
-  throw new Error('Use AuthModalService directly');
 }

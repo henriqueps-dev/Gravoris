@@ -7,7 +7,7 @@
       (ngModelChange)="onBrandFilterChange($event)"
     >
       <option value="">Todas as marcas</option>
-      @for (b of brands; track b) {
+      @for (b of catalog.availableBrands(); track b) {
         <option [value]="b">{{ b }}</option>
       }
     </select>

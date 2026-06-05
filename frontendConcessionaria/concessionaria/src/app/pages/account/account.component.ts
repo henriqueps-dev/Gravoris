@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { FavoritesService } from '../../core/services/favorites.service';
-import { VEHICLES } from '../../core/data/vehicles';
+import { VehicleCatalogService } from '../../core/services/vehicle-catalog.service';
 import { SiteHeaderComponent } from '../../shared/components/site-header/site-header.component';
 import { VehicleCardComponent } from '../../shared/components/vehicle-card/vehicle-card.component';
 
@@ -16,11 +16,12 @@ import { VehicleCardComponent } from '../../shared/components/vehicle-card/vehic
 export class AccountComponent implements OnInit {
   protected readonly auth = inject(AuthService);
   protected readonly favorites = inject(FavoritesService);
+  protected readonly catalog = inject(VehicleCatalogService);
   activeSection = 'perfil';
 
   protected readonly favoriteVehicles = computed(() => {
     const ids = this.favorites.favoriteIds();
-    return VEHICLES.filter((v) => ids.includes(v.id));
+    return this.catalog.getFilteredVehicles().filter((v) => ids.includes(v.id));
   });
 
   ngOnInit(): void {

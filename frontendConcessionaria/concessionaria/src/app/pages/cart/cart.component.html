@@ -54,7 +54,9 @@
       </div>
       <div class="cart-actions">
         <button type="button" class="btn-secondary" (click)="clear()">Limpar Carrinho</button>
-        <button type="button" class="btn-primary" (click)="checkout()">Finalizar Compra</button>
+        <button type="button" class="btn-primary" [disabled]="checkingOut()" (click)="checkout()">
+          @if (checkingOut()) { Processando... } @else { Finalizar Compra }
+        </button>
       </div>
     </div>
   } @else {

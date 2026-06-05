@@ -1,5 +1,5 @@
 import { Component, inject, output } from '@angular/core';
-import { BRANDS, Brand } from '../../../core/models/vehicle';
+import { Brand } from '../../../core/models/vehicle';
 import { VehicleCatalogService } from '../../../core/services/vehicle-catalog.service';
 
 @Component({
@@ -10,7 +10,6 @@ import { VehicleCatalogService } from '../../../core/services/vehicle-catalog.se
 })
 export class BrandBarComponent {
   readonly brandSelected = output<Brand | null>();
-  protected readonly brands = BRANDS;
   protected readonly catalog = inject(VehicleCatalogService);
 
   selectBrand(brand: Brand): void {
