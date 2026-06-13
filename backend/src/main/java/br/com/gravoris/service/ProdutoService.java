@@ -20,7 +20,7 @@ public class ProdutoService {
     }
 
     public List<Produto> carregarVitrine() {
-        return produtoRepository.findTop12ByAtivoTrueOrderByIdDesc();
+        return produtoRepository.findByAtivoTrue();
     }
 
     public List<Produto> buscar(String termo) {

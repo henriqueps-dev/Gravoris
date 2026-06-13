@@ -34,6 +34,7 @@ public class Produto {
     @Column(columnDefinition = "TEXT")
     private String descricao;
 
+    @Column(name = "imagem_url", length = 1000)
     private String imagemUrl;
 
     private int ano;

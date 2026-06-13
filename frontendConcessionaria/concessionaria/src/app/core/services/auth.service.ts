@@ -108,6 +108,29 @@ export class AuthService {
     }
   }
 
+  async redefinirSenha(email: string, newPassword: string): Promise<boolean> {
+    if (!email.trim() || !newPassword) {
+      this.toast.error('Campos inválidos. Verifique os dados informados');
+      return false;
+    }
+    if (newPassword.length < 6) {
+      this.toast.error('A senha deve ter pelo menos 6 caracteres');
+      return false;
+    }
+
+    try {
+      await this.clienteService.redefinirSenha({
+        email: email.trim().toLowerCase(),
+        newPassword
+      });
+      this.toast.success('Senha redefinida com sucesso!');
+      return true;
+    } catch (error) {
+      this.toast.error(mapApiError(error, 'redefinirSenha', 'Não foi possível redefinir a senha. Verifique o e-mail informado.'));
+      return false;
+    }
+  }
+
   logout(): void {
     this.session.set(null);
     this.clearStorage();
