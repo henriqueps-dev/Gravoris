@@ -21,4 +21,8 @@ export class OrderService {
 
     return firstValueFrom(this.http.post<PedidoResponse>(`${API_BASE_URL}/pedidos`, request));
   }
+
+  async getOrdersByCliente(clienteId: number): Promise<PedidoResponse[]> {
+    return firstValueFrom(this.http.get<PedidoResponse[]>(`${API_BASE_URL}/pedidos/cliente/${clienteId}`));
+  }
 }

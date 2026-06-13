@@ -32,6 +32,12 @@ export interface LoginRequest {
   password: string;
 }
 
+/** Payload esperado pelo backend em POST /api/clientes/redefinir-senha */
+export interface RedefinirSenhaRequest {
+  email: string;
+  newPassword: string;
+}
+
 export interface ClienteResponse {
   id: number;
   name: string;
@@ -60,11 +66,22 @@ export interface PedidoRequest {
   items: PedidoItemRequest[];
 }
 
+export interface PedidoItemResponse {
+  produtoId: number;
+  nome: string;
+  marca: string;
+  modelo: string;
+  imagemUrl: string;
+  quantidade: number;
+  precoUnitario: number;
+}
+
 export interface PedidoResponse {
   id: number;
   total: number;
   status: string;
   dataPedido: string;
+  itens: PedidoItemResponse[];
 }
 
 export interface ApiErrorResponse {

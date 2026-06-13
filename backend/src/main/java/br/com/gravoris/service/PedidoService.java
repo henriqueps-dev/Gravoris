@@ -1,7 +1,9 @@
 package br.com.gravoris.service;
 
 import br.com.gravoris.dto.PedidoItemRequest;
+import br.com.gravoris.dto.PedidoItemResponse;
 import br.com.gravoris.dto.PedidoRequest;
+import br.com.gravoris.dto.PedidoResponse;
 import br.com.gravoris.exception.BadRequestException;
 import br.com.gravoris.exception.ResourceNotFoundException;
 import br.com.gravoris.model.*;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Serviço que processa pedidos e aplica regras de estoque.
@@ -77,5 +80,36 @@ public class PedidoService {
 
         pedido.setTotal(total);
         return pedidoRepository.save(pedido);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> buscarPorClienteId(Long clienteId) {
+        clienteService.buscarPorId(clienteId);
+
+        return pedidoRepository.findByClienteId(clienteId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public PedidoResponse toResponse(Pedido pedido) {
+        List<PedidoItemResponse> itens = pedido.getItens().stream()
+                .map(item -> new PedidoItemResponse(
+                        item.getProduto().getId(),
+                        item.getProduto().getNome(),
+                        item.getProduto().getMarca(),
+                        item.getProduto().getModelo(),
+                        item.getProduto().getImagemUrl(),
+                        item.getQuantidade(),
+                        item.getPrecoUnitario()
+                ))
+                .toList();
+
+        return new PedidoResponse(
+                pedido.getId(),
+                pedido.getTotal(),
+                pedido.getStatus().name(),
+                pedido.getDataPedido().toString(),
+                itens
+        );
     }
 }
