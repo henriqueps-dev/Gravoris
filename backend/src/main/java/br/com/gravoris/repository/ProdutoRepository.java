@@ -11,7 +11,8 @@ import java.util.List;
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     List<Produto> findByAtivoTrue();
-    List<Produto> findTop12ByAtivoTrueOrderByIdDesc();
+
+    List<Produto> findByAtivoTrueOrderByIdDesc();
 
     @Query("SELECT p FROM Produto p WHERE p.ativo = true AND (LOWER(p.nome) LIKE LOWER(CONCAT('%', :term, '%')) OR LOWER(p.marca) LIKE LOWER(CONCAT('%', :term, '%')))")
     List<Produto> searchByNomeOrMarca(@Param("term") String term);

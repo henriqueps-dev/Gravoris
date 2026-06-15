@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.List;
 
 /**
  * Controller REST responsável por receber os pedidos do frontend.
@@ -27,12 +28,12 @@ public class PedidoController {
     @PostMapping
     public ResponseEntity<PedidoResponse> criarPedido(@Valid @RequestBody PedidoRequest request) {
         Pedido pedido = pedidoService.salvar(request);
-        PedidoResponse response = new PedidoResponse(
-                pedido.getId(),
-                pedido.getTotal(),
-                pedido.getStatus().name(),
-                pedido.getDataPedido().toString()
-        );
+        PedidoResponse response = pedidoService.toResponse(pedido);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<PedidoResponse>> listarPorCliente(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(pedidoService.buscarPorClienteId(clienteId));
     }
 }

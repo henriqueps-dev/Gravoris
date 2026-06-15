@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiErrorResponse } from '../models/api';
 
-export type AuthErrorContext = 'login' | 'register';
+export type AuthErrorContext = 'login' | 'register' | 'redefinirSenha';
 
 export function mapApiError(error: unknown, context: AuthErrorContext, fallback: string): string {
   if (!(error instanceof HttpErrorResponse)) {

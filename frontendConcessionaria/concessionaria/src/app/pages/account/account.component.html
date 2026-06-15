@@ -29,8 +29,56 @@
       }
       @case ('pedidos') {
         <h1>Meus Pedidos</h1>
-        <p class="empty-msg">Nenhum pedido realizado ainda. Explore nossa coleção exclusiva.</p>
-        <a routerLink="/" class="link-btn">Ver catálogo</a>
+        @if (loadingOrders()) {
+          <div class="orders-loading">
+            <span class="orders-spinner"></span>
+            Carregando seus pedidos...
+          </div>
+        } @else if (orders().length > 0) {
+          <div class="orders-list">
+            @for (order of orders(); track order.id) {
+              <div class="order-card">
+                <div class="order-header">
+                  <div class="order-meta">
+                    <span class="order-id">Pedido #{{ order.id }}</span>
+                    <span class="order-date">{{ formatDate(order.dataPedido) }}</span>
+                  </div>
+                  <span class="status-badge" [class]="getStatusClass(order.status)">
+                    {{ order.status }}
+                  </span>
+                </div>
+
+                <div class="order-items">
+                  @for (item of order.itens; track item.produtoId) {
+                    <div class="order-item">
+                      <div class="order-item-info">
+                        @if (item.imagemUrl) {
+                          <img [src]="item.imagemUrl" [alt]="item.nome" class="order-item-image" />
+                        }
+                        <div class="order-item-meta">
+                          <span class="order-item-brand">{{ item.marca }}</span>
+                          <span class="order-item-name">{{ item.nome }}</span>
+                          <span class="order-item-qty">Qtd: {{ item.quantidade }}</span>
+                        </div>
+                      </div>
+                      <div class="order-item-price">
+                        {{ formatPrice(item.precoUnitario) }}
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <div class="order-footer">
+                  <span class="order-total-label">Total do Pedido</span>
+                  <span class="order-total-value">{{ formatPrice(order.total) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-msg">Nenhum pedido realizado ainda. Explore nossa coleção exclusiva.</p>
+          <a routerLink="/" class="link-btn">Ver catálogo</a>
+        }
       }
       @case ('favoritos') {
         <h1>Favoritos</h1>

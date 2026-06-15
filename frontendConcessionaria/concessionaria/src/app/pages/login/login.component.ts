@@ -22,6 +22,10 @@ export class LoginComponent {
   remember = false;
   loading = signal(false);
 
+  isForgotPassword = signal(false);
+  newPassword = '';
+  confirmNewPassword = '';
+
   readonly backgroundVideo = 'assets/videos/bugatti.mp4';
 
   async submit(): Promise<void> {
@@ -38,6 +42,28 @@ export class LoginComponent {
   }
 
   forgotPassword(): void {
-    this.toast.info('Em breve: recuperação de senha por e-mail.');
+    this.isForgotPassword.set(true);
+    this.newPassword = '';
+    this.confirmNewPassword = '';
+  }
+
+  async submitResetPassword(): Promise<void> {
+    if (this.loading()) return;
+
+    if (this.newPassword !== this.confirmNewPassword) {
+      this.toast.error('As senhas não coincidem');
+      return;
+    }
+
+    this.loading.set(true);
+    const ok = await this.auth.redefinirSenha(this.email, this.newPassword);
+    this.loading.set(false);
+
+    if (ok) {
+      this.isForgotPassword.set(false);
+      this.password = '';
+      this.newPassword = '';
+      this.confirmNewPassword = '';
+    }
   }
 }
