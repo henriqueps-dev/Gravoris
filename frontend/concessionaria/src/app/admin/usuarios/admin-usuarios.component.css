@@ -1,0 +1,51 @@
+.user {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 220px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(74, 111, 165, 0.5), rgba(107, 140, 206, 0.3));
+  font-size: 0.9rem;
+}
+
+.you {
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(100, 149, 237, 0.15);
+  color: #8fb0f0;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--adm-muted);
+}
+
+.muted {
+  color: var(--adm-muted);
+  white-space: nowrap;
+}
+
+tr.inactive td:first-child {
+  opacity: 0.6;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

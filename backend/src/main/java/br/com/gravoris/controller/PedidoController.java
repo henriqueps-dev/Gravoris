@@ -3,6 +3,7 @@ package br.com.gravoris.controller;
 import br.com.gravoris.dto.PedidoRequest;
 import br.com.gravoris.dto.PedidoResponse;
 import br.com.gravoris.model.Pedido;
+import br.com.gravoris.security.CurrentUser;
 import br.com.gravoris.service.PedidoService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,6 @@ import java.util.List;
  * Controller REST responsável por receber os pedidos do frontend.
  */
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(value = "/api/pedidos", produces = MediaType.APPLICATION_JSON_VALUE)
 public class PedidoController {
 
@@ -27,6 +27,8 @@ public class PedidoController {
 
     @PostMapping
     public ResponseEntity<PedidoResponse> criarPedido(@Valid @RequestBody PedidoRequest request) {
+        // O pedido só pode ser feito em nome do próprio usuário autenticado
+        CurrentUser.exigirDonoOuAdmin(request.clienteId());
         Pedido pedido = pedidoService.salvar(request);
         PedidoResponse response = pedidoService.toResponse(pedido);
         return ResponseEntity.ok(response);
@@ -34,6 +36,7 @@ public class PedidoController {
 
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<List<PedidoResponse>> listarPorCliente(@PathVariable Long clienteId) {
+        CurrentUser.exigirDonoOuAdmin(clienteId);
         return ResponseEntity.ok(pedidoService.buscarPorClienteId(clienteId));
     }
 }

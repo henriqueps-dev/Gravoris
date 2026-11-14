@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("dev")
 public class ClienteControllerIntegrationTest {
 
     @Autowired
@@ -40,7 +42,9 @@ public class ClienteControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity())
+                .build();
     }
 
     @AfterEach
@@ -100,14 +104,32 @@ public class ClienteControllerIntegrationTest {
 
         // 3. Fazer login com as credenciais cadastradas
         LoginRequest loginReq = new LoginRequest(testEmail, initialPassword);
-        mockMvc.perform(post("/api/clientes/login")
+        String loginJson = mockMvc.perform(post("/api/clientes/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(clienteId))
                 .andExpect(jsonPath("$.email").value(testEmail))
                 .andExpect(jsonPath("$.name").value("Piloto Teste"))
-                .andExpect(jsonPath("$.token").isNotEmpty());
+                .andExpect(jsonPath("$.role").value("CLIENTE"))
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        String bearer = "Bearer " + objectMapper.readTree(loginJson).get("token").asText();
+
+        // 4.1 Sem token, os dados do cliente não podem ser lidos (HTTP 401)
+        mockMvc.perform(get("/api/clientes/{id}", clienteId))
+                .andExpect(status().isUnauthorized());
+
+        // 4.2 Token forjado/inválido é rejeitado (HTTP 401)
+        mockMvc.perform(get("/api/clientes/{id}", clienteId).header("Authorization", "Bearer abc.def.ghi"))
+                .andExpect(status().isUnauthorized());
+
+        // 4.3 Um cliente não pode ler os dados de outro cliente (HTTP 403)
+        Cliente outro = clienteRepository.save(Cliente.builder().nome("Outro").email("outro" + timestamp + "@gravoris.com")
+                .senha("x").cpf(String.format("%011d", (timestamp + 7) % 100000000000L)).build());
+        createdClienteIds.add(outro.getId());
+        mockMvc.perform(get("/api/clientes/{id}", outro.getId()).header("Authorization", bearer))
+                .andExpect(status().isForbidden());
 
         // 4. Testar login com senha errada (HTTP 401)
         LoginRequest loginInvalido = new LoginRequest(testEmail, "SenhaErrada999");
@@ -117,7 +139,7 @@ public class ClienteControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
 
         // 5. Consultar os dados do cliente por ID
-        mockMvc.perform(get("/api/clientes/{id}", clienteId))
+        mockMvc.perform(get("/api/clientes/{id}", clienteId).header("Authorization", bearer))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(clienteId))
                 .andExpect(jsonPath("$.name").value("Piloto Teste"))
@@ -134,6 +156,7 @@ public class ClienteControllerIntegrationTest {
         );
 
         mockMvc.perform(put("/api/clientes/{id}", clienteId)
+                        .header("Authorization", bearer)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateReq)))
                 .andExpect(status().isOk())
@@ -148,7 +171,14 @@ public class ClienteControllerIntegrationTest {
         assertEquals(persistido.getSenha(), clienteAtualizado.getSenha());
 
         // 7. Redefinir a senha
-        RedefinirSenhaRequest resetReq = new RedefinirSenhaRequest(testEmail, newPassword);
+        // 7.1 E-mail correto com CPF errado NÃO redefine a senha
+        RedefinirSenhaRequest resetErrado = new RedefinirSenhaRequest(testEmail, "00000000000", newPassword);
+        mockMvc.perform(post("/api/clientes/redefinir-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetErrado)))
+                .andExpect(status().isBadRequest());
+
+        RedefinirSenhaRequest resetReq = new RedefinirSenhaRequest(testEmail, testCpf, newPassword);
         mockMvc.perform(post("/api/clientes/redefinir-senha")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(resetReq)))

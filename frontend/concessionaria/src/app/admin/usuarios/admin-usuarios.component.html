@@ -1,0 +1,94 @@
+<header class="adm-head">
+  <div>
+    <span class="adm-eyebrow">Contas</span>
+    <h1>Usuários</h1>
+    <p>Clientes e administradores cadastrados na plataforma.</p>
+  </div>
+</header>
+
+<div class="adm-toolbar">
+  <form class="adm-search" (ngSubmit)="carregar()" role="search">
+    <input type="search" name="busca" [(ngModel)]="busca" placeholder="Buscar por nome, e-mail ou CPF" aria-label="Buscar usuários" />
+  </form>
+  <div class="adm-chips" role="group" aria-label="Filtrar usuários">
+    @for (f of filtros; track f.value) {
+      <button type="button" class="adm-chip" [class.active]="filtro() === f.value" [attr.aria-pressed]="filtro() === f.value" (click)="filtro.set(f.value)">
+        {{ f.label }}<span>{{ contagem()[f.value] }}</span>
+      </button>
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="adm-state"><span class="adm-spinner"></span>Carregando usuários...</div>
+} @else if (error()) {
+  <div class="adm-state">
+    Não foi possível carregar os usuários.
+    <button type="button" class="adm-btn" (click)="carregar()">Tentar novamente</button>
+  </div>
+} @else if (visiveis().length === 0) {
+  <div class="adm-state">Nenhum usuário encontrado.</div>
+} @else {
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Usuário</th>
+          <th>CPF</th>
+          <th>Papel</th>
+          <th>Situação</th>
+          <th>Cadastro</th>
+          <th class="adm-num"><span class="sr-only">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of visiveis(); track u.id) {
+          <tr [class.inactive]="!u.ativo">
+            <td>
+              <div class="user">
+                <span class="avatar" aria-hidden="true">{{ u.name.charAt(0).toUpperCase() }}</span>
+                <div>
+                  {{ u.name }}
+                  @if (u.id === meuId()) {
+                    <span class="you">você</span>
+                  }
+                  <span class="adm-sub">{{ u.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="mono">{{ formatCpf(u.cpf) }}</td>
+            <td>
+              @if (u.role === 'ADMINISTRADOR') {
+                <span class="adm-badge blue">Administrador</span>
+              } @else {
+                <span class="adm-badge">Cliente</span>
+              }
+            </td>
+            <td>
+              <span class="adm-badge" [class.ok]="u.ativo" [class.off]="!u.ativo">{{ u.ativo ? 'Ativo' : 'Inativo' }}</span>
+            </td>
+            <td class="muted">{{ formatData(u.criadoEm) }}</td>
+            <td>
+              <div class="adm-actions">
+                @if (u.id === meuId()) {
+                  <span class="adm-sub">Sua conta</span>
+                } @else {
+                  <button type="button" class="adm-link" (click)="pedirStatus(u)">{{ u.ativo ? 'Desativar' : 'Reativar' }}</button>
+                  <button type="button" class="adm-link" (click)="pedirRole(u)">{{ u.role === 'ADMINISTRADOR' ? 'Remover admin' : 'Tornar admin' }}</button>
+                  <button type="button" class="adm-link danger" (click)="pedirExclusao(u)">Excluir</button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-confirm-dialog
+  [request]="confirmacao()"
+  [busy]="confirmando()"
+  (confirm)="confirmar()"
+  (cancel)="confirmacao.set(null)"
+/>

@@ -6,6 +6,7 @@ import br.com.gravoris.dto.LoginRequest;
 import br.com.gravoris.dto.LoginResponse;
 import br.com.gravoris.dto.RedefinirSenhaRequest;
 import br.com.gravoris.model.Cliente;
+import br.com.gravoris.security.CurrentUser;
 import br.com.gravoris.service.ClienteService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,6 @@ import jakarta.validation.Valid;
  * Controller REST para expor operações de cliente para o frontend Angular.
  */
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(value = "/api/clientes", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ClienteController {
 
@@ -35,12 +35,14 @@ public class ClienteController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ClienteResponse> atualizar(@PathVariable Long id, @Valid @RequestBody ClienteRequest request) {
+        CurrentUser.exigirDonoOuAdmin(id);
         Cliente cliente = clienteService.alterar(id, request);
         return ResponseEntity.ok(toResponse(cliente));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ClienteResponse> buscarPorId(@PathVariable Long id) {
+        CurrentUser.exigirDonoOuAdmin(id);
         Cliente cliente = clienteService.buscarPorId(id);
         return ResponseEntity.ok(toResponse(cliente));
     }

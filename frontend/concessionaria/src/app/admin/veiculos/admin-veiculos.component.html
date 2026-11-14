@@ -1,0 +1,103 @@
+<header class="adm-head">
+  <div>
+    <span class="adm-eyebrow">Catálogo</span>
+    <h1>Veículos e anúncios</h1>
+    <p>Cadastre, edite, aprove, desative ou exclua anúncios.</p>
+  </div>
+  <a routerLink="/admin/veiculos/novo" class="adm-btn primary">Novo veículo</a>
+</header>
+
+<div class="adm-toolbar">
+  <form class="adm-search" (ngSubmit)="carregar()" role="search">
+    <input
+      type="search"
+      name="busca"
+      [(ngModel)]="busca"
+      placeholder="Buscar por nome, marca ou modelo"
+      aria-label="Buscar veículos"
+    />
+  </form>
+  <div class="adm-chips" role="group" aria-label="Filtrar por situação">
+    @for (f of filtros; track f.value) {
+      <button type="button" class="adm-chip" [class.active]="filtro() === f.value" [attr.aria-pressed]="filtro() === f.value" (click)="setFiltro(f.value)">
+        {{ f.label }}<span>{{ contagem()[f.value] }}</span>
+      </button>
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="adm-state"><span class="adm-spinner"></span>Carregando veículos...</div>
+} @else if (error()) {
+  <div class="adm-state">
+    Não foi possível carregar os veículos.
+    <button type="button" class="adm-btn" (click)="carregar()">Tentar novamente</button>
+  </div>
+} @else if (visiveis().length === 0) {
+  <div class="adm-state">
+    @if (busca || filtro()) {
+      Nenhum veículo encontrado com esses filtros.
+    } @else {
+      Nenhum veículo cadastrado ainda.
+      <a routerLink="/admin/veiculos/novo" class="adm-btn primary">Cadastrar o primeiro</a>
+    }
+  </div>
+} @else {
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Veículo</th>
+          <th>Categoria</th>
+          <th class="adm-num">Ano</th>
+          <th class="adm-num">Preço</th>
+          <th class="adm-num">Estoque</th>
+          <th>Situação</th>
+          <th class="adm-num"><span class="sr-only">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of visiveis(); track v.id) {
+          <tr>
+            <td>
+              <div class="veh">
+                @if (v.imageUrl) {
+                  <img [src]="v.imageUrl" [alt]="v.name" loading="lazy" referrerpolicy="no-referrer" />
+                } @else {
+                  <span class="veh-ph" aria-hidden="true">{{ v.brand.charAt(0) }}</span>
+                }
+                <div>
+                  <a [routerLink]="['/admin/veiculos', v.id]" class="veh-name">{{ v.name }}</a>
+                  <span class="adm-sub">{{ v.brand }} · {{ v.model }} · #{{ v.id }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="cap">{{ v.category ? v.category.toLowerCase() : '—' }}</td>
+            <td class="adm-num">{{ v.year }}</td>
+            <td class="adm-num">{{ formatPrice(v.price) }}</td>
+            <td class="adm-num" [class.zero]="v.stock === 0">{{ v.stock }}</td>
+            <td><span class="adm-badge" [class]="'adm-badge ' + statusClass(v.status)">{{ statusLabel(v.status) }}</span></td>
+            <td>
+              <div class="adm-actions">
+                <a [routerLink]="['/admin/veiculos', v.id]" class="adm-link">Editar</a>
+                @if (v.status !== 'APROVADO') {
+                  <button type="button" class="adm-link" (click)="alterarStatus(v, 'APROVADO')" [disabled]="busyId() === v.id">Aprovar</button>
+                } @else {
+                  <button type="button" class="adm-link" (click)="alterarStatus(v, 'DESATIVADO')" [disabled]="busyId() === v.id">Desativar</button>
+                }
+                <button type="button" class="adm-link danger" (click)="pedirExclusao(v)" [disabled]="busyId() === v.id">Excluir</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-confirm-dialog
+  [request]="confirmacao()"
+  [busy]="confirmando()"
+  (confirm)="confirmar()"
+  (cancel)="confirmacao.set(null)"
+/>

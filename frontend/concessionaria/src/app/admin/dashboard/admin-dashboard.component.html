@@ -1,0 +1,100 @@
+<header class="adm-head">
+  <div>
+    <span class="adm-eyebrow">Visão geral</span>
+    <h1>Dashboard</h1>
+    <p>Números da plataforma em tempo real.</p>
+  </div>
+  <a routerLink="/admin/veiculos/novo" class="adm-btn primary">Novo veículo</a>
+</header>
+
+@if (loading() && !data()) {
+  <div class="adm-state"><span class="adm-spinner"></span>Carregando indicadores...</div>
+} @else if (error()) {
+  <div class="adm-state">
+    Não foi possível carregar o dashboard.
+    <button type="button" class="adm-btn" (click)="carregar()">Tentar novamente</button>
+  </div>
+} @else if (data(); as d) {
+  <section class="kpis" aria-label="Indicadores">
+    <a routerLink="/admin/veiculos" class="kpi">
+      <span class="kpi-label">Veículos cadastrados</span>
+      <strong class="kpi-value">{{ formatNumber(d.totalVeiculos) }}</strong>
+      <span class="kpi-foot">{{ formatNumber(d.estoqueDisponivel) }} unidades em estoque</span>
+    </a>
+    <a routerLink="/admin/usuarios" class="kpi">
+      <span class="kpi-label">Usuários registrados</span>
+      <strong class="kpi-value">{{ formatNumber(d.totalUsuarios) }}</strong>
+      <span class="kpi-foot">{{ formatNumber(d.usuariosAtivos) }} ativos · {{ d.totalAdministradores }} admin</span>
+    </a>
+    <div class="kpi">
+      <span class="kpi-label">Pedidos</span>
+      <strong class="kpi-value">{{ formatNumber(d.totalPedidos) }}</strong>
+      <span class="kpi-foot">desde o início da plataforma</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label">Volume em pedidos</span>
+      <strong class="kpi-value kpi-money">{{ formatPrice(d.receitaPedidos) }}</strong>
+      <span class="kpi-foot">exceto pedidos cancelados</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="adm-card">
+      <h2 class="adm-card-title">
+        Situação dos anúncios
+        <a routerLink="/admin/veiculos">Gerenciar</a>
+      </h2>
+
+      @if (distribuicao().length) {
+        <div class="bar" role="img" [attr.aria-label]="d.veiculosAprovados + ' aprovados, ' + d.veiculosPendentes + ' pendentes, ' + d.veiculosDesativados + ' desativados'">
+          @for (f of distribuicao(); track f.key) {
+            @if (f.valor > 0) {
+              <span class="bar-seg" [class]="'bar-seg ' + f.key" [style.flex-grow]="f.valor"></span>
+            }
+          }
+        </div>
+        <ul class="legend">
+          @for (f of distribuicao(); track f.key) {
+            <li>
+              <a [routerLink]="['/admin/veiculos']" [queryParams]="{ status: f.status }">
+                <i [class]="f.key"></i>
+                <span>{{ f.label }}</span>
+                <strong>{{ f.valor }}</strong>
+              </a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">Nenhum veículo cadastrado ainda.</p>
+      }
+
+      @if (d.veiculosPendentes > 0) {
+        <a class="pending-cta" [routerLink]="['/admin/veiculos']" [queryParams]="{ status: 'PENDENTE' }">
+          {{ d.veiculosPendentes }} {{ d.veiculosPendentes === 1 ? 'anúncio aguarda' : 'anúncios aguardam' }} aprovação →
+        </a>
+      }
+    </section>
+
+    <section class="adm-card">
+      <h2 class="adm-card-title">Pedidos recentes</h2>
+      @if (d.pedidosRecentes.length) {
+        <div class="orders">
+          @for (p of d.pedidosRecentes; track p.id) {
+            <div class="order">
+              <div>
+                <strong>#{{ p.id }} · {{ p.cliente }}</strong>
+                <span class="adm-sub">{{ formatDate(p.dataPedido) }} · {{ p.itens }} {{ p.itens === 1 ? 'item' : 'itens' }}</span>
+              </div>
+              <div class="order-right">
+                <span class="adm-num">{{ formatPrice(p.total) }}</span>
+                <span class="adm-badge" [class]="'adm-badge ' + statusPedidoClass(p.status)">{{ p.status }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty">Nenhum pedido realizado ainda.</p>
+      }
+    </section>
+  </div>
+}

@@ -1,0 +1,35 @@
+<div class="auth-page">
+  <video autoplay muted loop playsinline class="auth-video">
+    <source [src]="backgroundVideo" type="video/mp4" />
+  </video>
+  <div class="auth-overlay"></div>
+
+  <div class="auth-card">
+    <a routerLink="/" class="auth-logo">GRAVORIS</a>
+    <h1>Painel</h1>
+    <p class="auth-subtitle">Acesso restrito a administradores</p>
+
+    <form (ngSubmit)="submit()" style="margin-top: 2rem">
+      <label>
+        <span>E-mail</span>
+        <input type="email" name="email" [(ngModel)]="email" required autocomplete="username" placeholder="admin@gravoris.com" />
+      </label>
+
+      <label>
+        <span>Senha</span>
+        <input type="password" name="password" [(ngModel)]="password" required autocomplete="current-password" placeholder="••••••••" />
+      </label>
+
+      <button type="submit" class="btn-submit" [disabled]="loading()">
+        @if (loading()) {
+          <span class="loader"></span>
+          Verificando...
+        } @else {
+          Entrar no painel
+        }
+      </button>
+    </form>
+
+    <a routerLink="/" class="back-catalog">← Voltar para a loja</a>
+  </div>
+</div>

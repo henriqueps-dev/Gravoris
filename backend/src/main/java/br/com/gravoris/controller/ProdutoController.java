@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
  * Controller REST que expõe os endpoints de catálogo de produtos.
  */
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(value = "/api/produtos", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ProdutoController {
 

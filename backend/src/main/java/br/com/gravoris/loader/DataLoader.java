@@ -4,6 +4,7 @@ import br.com.gravoris.model.Categoria;
 import br.com.gravoris.model.Produto;
 import br.com.gravoris.repository.ProdutoRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -11,9 +12,11 @@ import java.util.List;
 
 /**
  * DataLoader insere o catálogo de superesportivos de luxo ao iniciar a
- * aplicação.
+ * aplicação, apenas quando a tabela de produtos está vazia.
+ * Desligado em produção (SEED_CATALOG=false): lá o catálogo vem da migração dos dados reais.
  */
 @Component
+@ConditionalOnProperty(name = "app.seed-catalog", havingValue = "true", matchIfMissing = true)
 public class DataLoader implements CommandLineRunner {
 
         private final ProdutoRepository produtoRepository;

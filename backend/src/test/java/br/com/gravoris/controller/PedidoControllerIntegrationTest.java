@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("dev")
 public class PedidoControllerIntegrationTest {
 
     @Autowired
@@ -57,7 +59,9 @@ public class PedidoControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity())
+                .build();
     }
 
     @AfterEach
@@ -88,6 +92,8 @@ public class PedidoControllerIntegrationTest {
                 String.format("%011d", (timestamp % 100000000000L))
         ));
         createdClienteIds.add(cliente.getId());
+        String bearer = "Bearer " + clienteService.login(
+                new br.com.gravoris.dto.LoginRequest(cliente.getEmail(), "VipPassword123!")).token();
 
         List<Produto> produtos = produtoRepository.findByAtivoTrue();
         assertFalse(produtos.isEmpty(), "Produtos devem existir no banco");
@@ -105,7 +111,21 @@ public class PedidoControllerIntegrationTest {
                 List.of(itemReq)
         );
 
+        // Sem token não é possível comprar
+        mockMvc.perform(post("/api/pedidos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pedidoReq)))
+                .andExpect(status().isUnauthorized());
+
+        // Não é possível criar pedido em nome de outro cliente
+        mockMvc.perform(post("/api/pedidos")
+                        .header("Authorization", bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PedidoRequest(cliente.getId() + 100000, List.of(itemReq)))))
+                .andExpect(status().isForbidden());
+
         String responseJson = mockMvc.perform(post("/api/pedidos")
+                        .header("Authorization", bearer)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(pedidoReq)))
                 .andExpect(status().isOk())
@@ -133,6 +153,7 @@ public class PedidoControllerIntegrationTest {
 
         // Listar pedidos pelo cliente ID
         mockMvc.perform(get("/api/pedidos/cliente/{clienteId}", cliente.getId())
+                        .header("Authorization", bearer)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))

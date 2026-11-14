@@ -1,0 +1,53 @@
+.veh {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 240px;
+}
+
+.veh img,
+.veh-ph {
+  width: 72px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.veh-ph {
+  display: grid;
+  place-items: center;
+  color: var(--adm-faint);
+  font-size: 1.1rem;
+}
+
+.veh-name {
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+}
+
+.veh-name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cap {
+  text-transform: capitalize;
+  color: var(--adm-muted);
+}
+
+.zero {
+  color: var(--adm-danger);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

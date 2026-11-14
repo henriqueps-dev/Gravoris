@@ -1,0 +1,160 @@
+<header class="adm-head">
+  <div>
+    <a routerLink="/admin/veiculos" class="back">← Veículos</a>
+    <h1>{{ editando ? 'Editar veículo' : 'Novo veículo' }}</h1>
+    @if (original(); as o) {
+      <p>#{{ o.id }} · {{ o.brand }} {{ o.name }}</p>
+    } @else if (!editando) {
+      <p>Preencha os dados do anúncio. Campos com * são obrigatórios.</p>
+    }
+  </div>
+</header>
+
+@if (loading()) {
+  <div class="adm-state"><span class="adm-spinner"></span>Carregando veículo...</div>
+} @else {
+  <form class="vform" (ngSubmit)="salvar()" novalidate>
+    <div class="vform-main">
+      @if (erros().length) {
+        <div class="errors" role="alert">
+          <strong>Corrija os campos abaixo:</strong>
+          <ul>
+            @for (e of erros(); track e) {
+              <li>{{ e }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      <section class="adm-card">
+        <h2 class="adm-card-title">Identificação</h2>
+        <div class="fields">
+          <label class="adm-field span-2">
+            <span>Nome *</span>
+            <input type="text" name="name" [(ngModel)]="form.name" required maxlength="255" placeholder="Ex.: Chiron Super Sport" />
+          </label>
+          <label class="adm-field">
+            <span>Marca *</span>
+            <input type="text" name="brand" [(ngModel)]="form.brand" required maxlength="255" placeholder="Ex.: Bugatti" />
+          </label>
+          <label class="adm-field">
+            <span>Modelo *</span>
+            <input type="text" name="model" [(ngModel)]="form.model" required maxlength="255" placeholder="Ex.: Super Sport" />
+          </label>
+          <label class="adm-field">
+            <span>Ano *</span>
+            <input type="number" name="year" [(ngModel)]="form.year" required min="1886" max="2100" inputmode="numeric" />
+          </label>
+          <label class="adm-field">
+            <span>Categoria *</span>
+            <select name="category" [(ngModel)]="form.category">
+              @for (c of categorias; track c.value) {
+                <option [value]="c.value">{{ c.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="adm-card">
+        <h2 class="adm-card-title">Preço e estoque</h2>
+        <div class="fields three">
+          <label class="adm-field">
+            <span>Preço (R$) *</span>
+            <input type="number" name="price" [(ngModel)]="form.price" required min="1" step="0.01" inputmode="decimal" placeholder="0,00" />
+          </label>
+          <label class="adm-field">
+            <span>Estoque</span>
+            <input type="number" name="stock" [(ngModel)]="form.stock" min="0" inputmode="numeric" />
+          </label>
+          <label class="adm-field">
+            <span>Quilometragem</span>
+            <input type="number" name="mileage" [(ngModel)]="form.mileage" min="0" inputmode="numeric" />
+          </label>
+        </div>
+      </section>
+
+      <section class="adm-card">
+        <h2 class="adm-card-title">Desempenho</h2>
+        <div class="fields">
+          <label class="adm-field span-2">
+            <span>Motor</span>
+            <input type="text" name="engine" [(ngModel)]="form.engine" maxlength="255" placeholder="Ex.: W16 8.0L Quad-Turbo" />
+          </label>
+          <label class="adm-field">
+            <span>Potência (cv)</span>
+            <input type="number" name="power" [(ngModel)]="form.power" min="0" inputmode="numeric" />
+          </label>
+          <label class="adm-field">
+            <span>Torque</span>
+            <input type="text" name="torque" [(ngModel)]="form.torque" maxlength="255" placeholder="Ex.: 1600 Nm" />
+          </label>
+          <label class="adm-field">
+            <span>Velocidade máxima (km/h)</span>
+            <input type="number" name="topSpeed" [(ngModel)]="form.topSpeed" min="0" inputmode="numeric" />
+          </label>
+          <label class="adm-field">
+            <span>0–100 km/h</span>
+            <input type="text" name="acceleration" [(ngModel)]="form.acceleration" maxlength="255" placeholder="Ex.: 2.4s" />
+          </label>
+        </div>
+      </section>
+
+      <section class="adm-card">
+        <h2 class="adm-card-title">Descrição</h2>
+        <label class="adm-field">
+          <span class="sr-only">Descrição do anúncio</span>
+          <textarea name="description" rows="5" [(ngModel)]="form.description" maxlength="5000" placeholder="Destaques do veículo, histórico, opcionais..."></textarea>
+        </label>
+      </section>
+    </div>
+
+    <aside class="vform-side">
+      <section class="adm-card">
+        <h2 class="adm-card-title">Publicação</h2>
+        <label class="adm-field">
+          <span>Situação do anúncio</span>
+          <select name="status" [(ngModel)]="form.status">
+            @for (s of statusOpcoes; track s.value) {
+              <option [value]="s.value">{{ s.label }}</option>
+            }
+          </select>
+          <small>Só anúncios aprovados aparecem na loja.</small>
+        </label>
+      </section>
+
+      <section class="adm-card">
+        <h2 class="adm-card-title">Imagem</h2>
+        <div class="preview" [class.empty]="!form.imageUrl || imagemQuebrada()">
+          @if (form.imageUrl && !imagemQuebrada()) {
+            <img [src]="form.imageUrl" alt="Pré-visualização do veículo" referrerpolicy="no-referrer" (error)="imagemQuebrada.set(true)" />
+          } @else if (imagemQuebrada()) {
+            <span>Não foi possível carregar esta imagem</span>
+          } @else {
+            <span>Sem imagem</span>
+          }
+        </div>
+
+        @if (uploadDisponivel()) {
+          <label class="adm-btn upload" [class.busy]="uploading()">
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" (change)="onArquivo($event)" [disabled]="uploading()" />
+            {{ uploading() ? 'Enviando...' : 'Enviar imagem' }}
+          </label>
+          <p class="hint">JPG, PNG, WEBP ou AVIF, até 5 MB. Ou cole uma URL:</p>
+        }
+
+        <label class="adm-field">
+          <span>URL da imagem</span>
+          <input type="url" name="imageUrl" [(ngModel)]="form.imageUrl" (ngModelChange)="onImagemUrlChange()" maxlength="1000" placeholder="https://..." />
+        </label>
+      </section>
+
+      <div class="vform-actions">
+        <a routerLink="/admin/veiculos" class="adm-btn">Cancelar</a>
+        <button type="submit" class="adm-btn primary" [disabled]="saving() || uploading()">
+          {{ saving() ? 'Salvando...' : editando ? 'Salvar alterações' : 'Cadastrar veículo' }}
+        </button>
+      </div>
+    </aside>
+  </form>
+}
