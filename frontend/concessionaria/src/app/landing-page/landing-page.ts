@@ -1,4 +1,5 @@
-import { Component, ElementRef, OnDestroy, OnInit, output, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, PLATFORM_ID, ViewChild, afterNextRender, inject, output } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-landing-page',
@@ -7,9 +8,11 @@ import { Component, ElementRef, OnDestroy, OnInit, output, ViewChild } from '@an
   templateUrl: './landing-page.html',
   styleUrl: './landing-page.css'
 })
-export class LandingPage implements OnInit, OnDestroy {
+export class LandingPage implements OnDestroy {
   readonly navigateToStore = output<void>();
   @ViewChild('bgVideo') bgVideo?: ElementRef<HTMLVideoElement>;
+
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   videos: string[] = [
     'assets/videos/koenigsegg.mp4',
@@ -17,16 +20,18 @@ export class LandingPage implements OnInit, OnDestroy {
     'assets/videos/mclaren.mp4'
   ];
 
-  currentVideoIndex: number = 0;
-  currentVideo: string = this.videos[0];
+  currentVideoIndex = 0;
+  interval: ReturnType<typeof setInterval> | undefined;
 
-  interval: any;
-
-  ngOnInit(): void {
-    this.shuffle(this.videos);
-    this.currentVideoIndex = 0;
-    this.currentVideo = this.videos[0];
-    this.startVideoRotation();
+  constructor() {
+    // O sorteio acontece só no navegador: assim cada visita começa por um vídeo
+    // diferente (no SSR o resultado ficaria "congelado" no HTML do servidor).
+    afterNextRender(() => {
+      this.shuffle(this.videos);
+      this.currentVideoIndex = 0;
+      this.playCurrent();
+      this.interval = setInterval(() => this.changeVideo(), 8000);
+    });
   }
 
   // Fisher-Yates
@@ -35,12 +40,6 @@ export class LandingPage implements OnInit, OnDestroy {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
-  }
-
-  startVideoRotation(): void {
-    this.interval = setInterval(() => {
-      this.changeVideo();
-    }, 8000);
   }
 
   changeVideo(): void {
@@ -56,14 +55,19 @@ export class LandingPage implements OnInit, OnDestroy {
       this.currentVideoIndex = 0;
     }
 
-    this.currentVideo = this.videos[this.currentVideoIndex];
+    this.playCurrent();
+  }
 
-    queueMicrotask(() => {
-      const el = this.bgVideo?.nativeElement;
-      if (!el) return;
-      el.load();
-      void el.play().catch(() => {});
-    });
+  /** Troca o arquivo direto no elemento, sempre sem áudio. */
+  private playCurrent(): void {
+    if (!this.isBrowser) return;
+    const el = this.bgVideo?.nativeElement;
+    if (!el) return;
+    el.muted = true;
+    el.defaultMuted = true;
+    el.volume = 0;
+    el.src = this.videos[this.currentVideoIndex];
+    void el.play().catch(() => {});
   }
 
   ngOnDestroy(): void {
